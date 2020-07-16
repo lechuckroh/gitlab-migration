@@ -1,0 +1,10 @@
+version: '3.1'
+
+services:
+  gitlab-migration:
+    image: lechuckroh/gitlab-migration
+    environment:
+      GITLAB_SRC_GROUP_ID: ${GITLAB_SRC_GROUP_ID}
+      GITLAB_DEST_GROUP_ID: ${GITLAB_DEST_GROUP_ID}
+    volumes:
+      - ./gitlab-migration.cfg:/app/gitlab-migration.cfg

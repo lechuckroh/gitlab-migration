@@ -31,48 +31,11 @@ $ GITLAB_SRC_GROUP_ID=1234 GITLAB_DEST_GROUP_ID=5678 python migrate.py
 You can find Group ID at 'group overview' page.
 
 ### Run with docker image
-create `gitlab-migration.cfg` file:
-
-```ini
-[global]
-default = src
-ssl_verify = true
-timeout = 5
-
-[dest]
-url = https://gitlab.com
-private_token = <personal access token>
-http_username = <username>
-http_password = <password>
-
-[src]
-url = http://localhost
-ssl_verify = false
-private_token = <personal access token>
-http_username = <username>
-http_password = <password>
-```
-
-create `docker-compose.yml` file:
-
-```yaml
-version: '3.1'
-
-services:
-  gitlab-migration:
-    image: lechuckroh/gitlab-migration
-    environment:
-      GITLAB_SRC_GROUP_ID: <src group id>
-      GITLAB_DEST_GROUP_ID: <dest group id>
-    volumes:
-      - ./gitlab-migration.cfg:/app/gitlab-migration.cfg
-```
-
-Run:
-
 ```bash
-$ docker-compose run --rm gitlab-migration
+$ GITLAB_SRC_GROUP_ID={srcGroupId} GITLAB_DEST_GROUP_ID={destGroupId} \
+  docker-compose run --rm gitlab-migration
 ```
+
 
 ## Supported migration items
 |    item   |support|
