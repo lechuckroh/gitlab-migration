@@ -33,7 +33,7 @@ You can find Group ID at 'group overview' page.
 ### Run with docker image
 ```bash
 $ GITLAB_SRC_GROUP_ID={srcGroupId} GITLAB_DEST_GROUP_ID={destGroupId} \
-  docker-compose run --rm gitlab-migration
+  docker-compose run --rm lechuckroh/gitlab-migration
 ```
 
 
