@@ -136,4 +136,4 @@ gitlab-migration-*.cfg
 .idea
 
 # CI
-.drone-secrets.txt
+secrets.txt

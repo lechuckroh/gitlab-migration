@@ -1,4 +1,7 @@
 # gitlab-migration
+
+[![Build Status](https://drone.lechuckcgx.com/api/badges/lechuckroh/gitlab-migration/status.svg?ref=refs/heads/master)](https://drone.lechuckcgx.com/lechuckroh/gitlab-migration)
+
 Migrate GitLab repositories to other GitLab server
 
 ## Requirements

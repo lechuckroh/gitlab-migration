@@ -1,12 +1,12 @@
 kind: pipeline
+type: docker
 name: default
 
 steps:
   - name: docker
     image: plugins/docker
     settings:
-      username:
-        from_secret: docker_username
+      username: lechuckroh
       password:
         from_secret: docker_password
       repo: lechuckroh/gitlab-migration

@@ -5,3 +5,7 @@ image:
 
 push:
 	docker push lechuckroh/gitlab-migration
+
+# drone
+drone-exec:
+	drone exec --secret-file secrets.txt
