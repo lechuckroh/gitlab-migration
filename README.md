@@ -1,6 +1,6 @@
 # gitlab-migration
 
-![docker image](https://github.com/lechuckroh/gitlab-migration/workflows/docker%20mage/badge.svg)
+![docker image](https://github.com/lechuckroh/gitlab-migration/workflows/docker%20image/badge.svg)
 
 Migrate GitLab repositories to other GitLab server
 
