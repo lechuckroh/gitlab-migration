@@ -3,15 +3,18 @@ import pathlib
 import re
 import sys
 import tempfile
+import time
 
 import gitlab
 from git import Repo, Remote, Git
 
 
 class GitLabMigration:
-    def __init__(self, gl_src, gl_dest):
+    def __init__(self, gl_src, gl_dest, use_export_import, overwrite_import):
         self.gl_src = gl_src
         self.gl_dest = gl_dest
+        self.use_export_import = use_export_import
+        self.overwrite_import = overwrite_import
 
     def migrate(self, src_group_id, dest_group_id):
         self._migrate_groups(src_group_id, dest_group_id)
@@ -41,13 +44,18 @@ class GitLabMigration:
         src_project_dict = self._get_projects_by_name(src_group)
         dest_project_dict = self._get_projects_by_name(dest_group)
         for project_name, src_project in src_project_dict.items():
-            # create dest project if not exists
-            dest_project = dest_project_dict.get(project_name)
-            if dest_project is None:
-                print(f"[+ PROJECT] {dest_group.path} / {project_name}")
-                dest_project = self._create_project(dest_group, project_name)
+            if self.use_export_import:
+                # migrate project using export / import
+                self._export_import_project(src_project.path_with_namespace, dest_group.full_path)
+            else:
+                # create dest project if not exists
+                dest_project = dest_project_dict.get(project_name)
+                if dest_project is None:
+                    print(f"[+ PROJECT] {dest_group.path} / {project_name}")
+                    dest_project = self._create_project(dest_group, project_name)
 
-            self._migrate_project(src_project, dest_project)
+                # migrate project
+                self._migrate_project(src_project, dest_project)
 
     def _create_subgroup(self, group, name):
         """
@@ -105,6 +113,40 @@ class GitLabMigration:
             remote_dest.push("--tags")
 
         print(f"[done] {src_project.path_with_namespace}")
+
+    def _export_import_project(self, src_project_path, dest_namespace):
+        """
+        Export / import a project
+        """
+        src_project = self.gl_src.projects.get(src_project_path)
+
+        # export project
+        export = src_project.exports.create()
+        export.refresh()
+        while export.export_status != 'finished':
+            time.sleep(1)
+            export.refresh()
+
+        with tempfile.TemporaryDirectory() as wd:
+            # download export result
+            export_filepath = os.path.join(wd, 'export.tgz')
+            with open(export_filepath, 'wb') as f:
+                export.download(streamed=True, action=f.write)
+            print(f"[export] {src_project_path} ---> {export_filepath}")
+
+            # import project
+            dest_projects = self.gl_dest.projects
+            output = dest_projects.import_project(open(export_filepath, 'rb'),
+                                                  src_project.name,
+                                                  namespace=dest_namespace,
+                                                  overwrite=self.overwrite_import)
+            project_import = dest_projects.get(output['id'], lazy=True).imports.get()
+            while project_import.import_status != 'finished':
+                time.sleep(1)
+                project_import.refresh()
+            print(f"[import] {export_filepath} ---> {dest_namespace}/{src_project.name}")
+
+        print(f"[done] {src_project_path}")
 
     @staticmethod
     def _get_subgroups_by_name(group):
@@ -170,13 +212,16 @@ def migrate():
     if not dest_group_id:
         sys.exit("GITLAB_DEST_GROUP_ID env is not set")
 
+    use_export_import = get_env('GITLAB_EXPORT_IMPORT') == 'True'
+    overwrite_import = get_env('GITLAB_IMPORT_OVERWRITE') == 'True'
+
     # src gitlab
     gl_src = new_gitlab('src', cfg_file, 'GITLAB_SRC_')
     # dest gitlab
     gl_dest = new_gitlab('dest', cfg_file, 'GITLAB_DEST_')
 
     # run migration
-    GitLabMigration(gl_src, gl_dest).migrate(src_group_id, dest_group_id)
+    GitLabMigration(gl_src, gl_dest, use_export_import, overwrite_import).migrate(src_group_id, dest_group_id)
 
 
 if __name__ == "__main__":
