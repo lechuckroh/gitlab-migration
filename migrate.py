@@ -5,7 +5,7 @@ import sys
 import tempfile
 
 import gitlab
-from git import Repo
+from git import Repo, Remote, Git
 
 
 class GitLabMigration:
@@ -61,31 +61,45 @@ class GitLabMigration:
         """
         return self.gl_dest.projects.create({'name': name, 'namespace_id': group.id})
 
+    @staticmethod
+    def _get_git_url(gl, p):
+        if gl.http_username:
+            regex = r"(http[s]?:\/\/)(.+)"
+            matches = re.findall(regex, p.http_url_to_repo)
+            m = matches[0]
+            return f"{m[0]}{gl.http_username}:{gl.http_password}@{m[1]}"
+        return p.ssh_url_to_repo
+
+    @staticmethod
+    def _clone_from(src_url, wd):
+        print(f"[clone] {src_url} ---> {wd}")
+        repo: Repo = Repo.clone_from(src_url, wd)
+
+        # checkout all branches
+        remote_branches = repo.remote().fetch()
+        for remote_branch in remote_branches:
+            name = '/'.join(remote_branch.name.split('/')[1:])
+            print(f"  branch: {name}")
+            repo.git.checkout("-B", name, remote_branch.name)
+
+        return repo
+
     def _migrate_project(self, src_project, dest_project):
         """
         Migrate a project
         """
-        def get_url(gl, p):
-            if gl.http_username:
-                regex = r"(http[s]?:\/\/)(.+)"
-                matches = re.findall(regex, p.http_url_to_repo)
-                m = matches[0]
-                return f"{m[0]}{gl.http_username}:{gl.http_password}@{m[1]}"
-            return p.ssh_url_to_repo
-
-        src_url = get_url(self.gl_src, src_project)
-        dest_url = get_url(self.gl_dest, dest_project)
+        src_url = self._get_git_url(self.gl_src, src_project)
+        dest_url = self._get_git_url(self.gl_dest, dest_project)
 
         # temp directory context
         with tempfile.TemporaryDirectory() as wd:
             # clone src_url to local disk
-            print(f"[clone] {src_url} ---> {wd}")
-            repo = Repo.clone_from(src_url, wd)
+            repo = self._clone_from(src_url, wd)
 
             # add remote url
             remote_dest = repo.create_remote('dest', dest_url)
 
-            # push all branches to dest server
+            # push all branches and tags to dest server
             print(f"[push] {wd} ---> {dest_url}")
             remote_dest.push("--all")
             remote_dest.push("--tags")
