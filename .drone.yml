@@ -11,3 +11,6 @@ steps:
         from_secret: docker_password
       repo: lechuckroh/gitlab-migration
       tags: latest
+
+node:
+  docker: true
