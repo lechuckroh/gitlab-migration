@@ -6,4 +6,4 @@ idna==2.9
 python-gitlab==2.2.0
 requests==2.23.0
 smmap==3.0.4
-urllib3==1.25.9
+urllib3==1.26.5
