@@ -44,7 +44,8 @@ variable name and configuration mapping:
 # setup virtual environments
 $ python3 -m venv venv
 $ source venv/bin/activate
-$ pip install -r requirements.txt
+(venv) $ python -m pip install pip-tools
+(venv) $ pip install -r requirements.txt
 
 # Migrate
 $ GITLAB_SRC_GROUP_ID=1234 \

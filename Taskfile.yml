@@ -1,0 +1,35 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  PYTHONPATH: ./
+  DOCKER_IMAGE: lechuckroh/gitlab-migration
+
+tasks:
+  # generate requirements.txt from requirements.in
+  freeze: pip-compile
+
+  # upgrade pip
+  update-pip: python -m pip install --upgrade pip
+
+  # list outdated packages
+  outdated: pip list --outdated
+
+  # upgrade all packages
+  upgrade-all:
+    - pip-compile --upgrade
+    - task: install
+
+  # install packages
+  install: pip install -r requirements.txt
+  install-ci: source venv/bin/activate && pip install -r requirements.txt
+
+  # format source codes using black
+  black: black --line-length=120 {{.PYTEST_TARGET}}
+
+  docker-build: docker build -t {{.DOCKER_IMAGE}} .
+  
+  docker-push: docker push {{.DOCKER_IMAGE}}
+
+  exec-drone: drone exec --secret-file secrets.txt
