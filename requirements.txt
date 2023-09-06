@@ -16,7 +16,7 @@ click==8.0.1
     # via black
 gitdb==4.0.7
     # via gitpython
-gitpython==3.1.18
+gitpython==3.1.34
     # via -r requirements.in
 idna==2.10
     # via requests
