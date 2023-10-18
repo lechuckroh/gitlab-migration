@@ -38,5 +38,5 @@ smmap==4.0.0
     # via gitdb
 toml==0.10.2
     # via black
-urllib3==1.26.6
+urllib3==1.26.18
     # via requests
