@@ -10,7 +10,7 @@ black==21.6b0
     # via -r requirements.in
 certifi==2023.7.22
     # via requests
-chardet==4.0.0
+charset-normalizer==3.4.0
     # via requests
 click==8.0.1
     # via black
@@ -28,7 +28,7 @@ python-gitlab==2.9.0
     # via -r requirements.in
 regex==2021.7.6
     # via black
-requests==2.25.1
+requests==2.32.2
     # via
     #   python-gitlab
     #   requests-toolbelt
